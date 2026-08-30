@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import torch
 from torch import nn
-import jax
-from flax import nnx
 from typing import Dict, Any
 import logging
+
+# Flax/JAX are only required for the JAX notebook (jax-ai-stack). Colab's
+# default jax/flax pair is incompatible and must not break the torch path.
+try:
+    import jax
+    from flax import nnx
+except Exception:
+    jax = None
+    nnx = None
 
 log = logging.getLogger(__name__)
 
@@ -74,7 +81,7 @@ def build_model_metadata(model: nn.Module | nnx.Module, param_limit: int) -> Dic
             "cuda_version": torch.version.cuda,
         }
 
-    elif isinstance(model, nnx.Module):
+    elif nnx is not None and isinstance(model, nnx.Module):
         try:
             param_state = nnx.state(model, nnx.Param)
             param_leaves = jax.tree_util.tree_leaves(param_state)

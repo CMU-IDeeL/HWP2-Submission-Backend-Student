@@ -5,7 +5,15 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import torch.nn as nn
-from flax import nnx 
+
+# Flax is only required for the JAX notebook, which installs jax-ai-stack
+try:
+    from flax import nnx
+except Exception:
+    nnx = None
+
+_MODEL_TYPES = (nn.Module, nnx.Module) if nnx is not None else (nn.Module,)
+
 
 @dataclass(slots=True)
 class SubmissionConfig:
@@ -77,7 +85,7 @@ class SubmissionConfig:
     # Validation
     # ------------------------------------------------------------------
     def __post_init__(self) -> None:
-        if not isinstance(self.model, (nn.Module, nnx.Module)):
+        if not isinstance(self.model, _MODEL_TYPES):
             raise TypeError("model must be an instance of torch.nn.Module or flax.nnx.Module")
 
         if not self.kaggle_username.strip():
